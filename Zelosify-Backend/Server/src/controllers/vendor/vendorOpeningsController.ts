@@ -339,3 +339,70 @@ export async function deleteVendorProfile(req: AuthenticatedRequest, res: Respon
   }
 }
 
+/**
+ * GET /api/v1/vendor/dashboard-stats
+ * Retrieve dashboard analytics for IT Vendors.
+ */
+export async function getVendorDashboardStats(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    if (!req.user || req.user.role !== "IT_VENDOR") {
+      res.status(403).json({ error: "Access Denied: Requires IT_VENDOR role" });
+      return;
+    }
+
+    const tenantId = req.user.tenant?.tenantId;
+    if (!tenantId) {
+      res.status(400).json({ error: "User is not associated with any tenant" });
+      return;
+    }
+
+    const vendorEmail = req.user.email;
+
+    // Fetch dashboard stats in parallel
+    const [openVacancies, totalSubmissions, pendingReviews] = await Promise.all([
+      prisma.opening.count({
+        where: { tenantId, status: "OPEN" },
+      }),
+      prisma.hiringProfile.count({
+        where: { uploadedBy: vendorEmail, isDeleted: false },
+      }),
+      prisma.hiringProfile.count({
+        where: { uploadedBy: vendorEmail, status: "SUBMITTED", isDeleted: false },
+      }),
+    ]);
+
+    // Fetch the 5 most recently uploaded profiles by this vendor
+    const recentSubmissions = await prisma.hiringProfile.findMany({
+      where: { uploadedBy: vendorEmail, isDeleted: false },
+      orderBy: { submittedAt: "desc" },
+      take: 5,
+      include: {
+        opening: {
+          select: { title: true },
+        },
+      },
+    });
+
+    const mappedRecent = recentSubmissions.map((p) => ({
+      id: p.id,
+      filename: p.s3Key.split("/").pop()?.split("_").slice(1).join("_") || "resume.pdf",
+      openingTitle: p.opening.title,
+      submittedAt: p.submittedAt,
+      status: p.status,
+    }));
+
+    res.status(200).json({
+      stats: {
+        openVacancies,
+        totalSubmissions,
+        pendingReviews,
+      },
+      recentSubmissions: mappedRecent,
+    });
+  } catch (error: any) {
+    console.error("[Vendor Controller] getVendorDashboardStats failed:", error);
+    res.status(500).json({ error: "Internal Server Error", message: error.message });
+  }
+}
+
+

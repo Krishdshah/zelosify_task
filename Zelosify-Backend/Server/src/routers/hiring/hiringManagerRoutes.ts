@@ -6,6 +6,7 @@ import {
   getHiringManagerOpeningProfiles,
   shortlistProfile,
   rejectProfile,
+  getHiringManagerDashboardStats,
 } from "../../controllers/hiring/hiringManagerOpeningsController.js";
 
 const router = Router();
@@ -13,6 +14,9 @@ const router = Router();
 // Apply authentication and role authorization for all routes
 router.use(authenticateUser as RequestHandler);
 router.use(authorizeRole("HIRING_MANAGER") as RequestHandler);
+
+// GET /api/v1/hiring-manager/dashboard-stats
+router.get("/dashboard-stats", getHiringManagerDashboardStats as any);
 
 // GET /api/v1/hiring-manager/openings
 router.get("/openings", getHiringManagerOpenings as any);

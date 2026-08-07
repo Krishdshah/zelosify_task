@@ -217,3 +217,60 @@ export async function rejectProfile(req: AuthenticatedRequest, res: Response): P
     res.status(500).json({ error: "Internal Server Error", message: error.message });
   }
 }
+
+/**
+ * GET /api/v1/hiring-manager/dashboard-stats
+ * Retrieve dashboard analytics cards content.
+ */
+export async function getHiringManagerDashboardStats(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    if (!req.user || req.user.role !== "HIRING_MANAGER") {
+      res.status(403).json({ error: "Access Denied: Requires HIRING_MANAGER role" });
+      return;
+    }
+
+    const hiringManagerId = req.user.id;
+
+    // Fetch all openings owned by this manager
+    const openings = await prisma.opening.findMany({
+      where: { hiringManagerId },
+      select: { id: true },
+    });
+
+    const openingIds = openings.map((o) => o.id);
+
+    // Fetch counts from hiringProfiles linked to these openings
+    const [pending, recommended, rejected, shortlisted] = await Promise.all([
+      prisma.hiringProfile.count({
+        where: { openingId: { in: openingIds }, status: "SUBMITTED", isDeleted: false },
+      }),
+      prisma.hiringProfile.count({
+        where: {
+          openingId: { in: openingIds },
+          recommendationScore: { gte: 0.75 },
+          isDeleted: false,
+        },
+      }),
+      prisma.hiringProfile.count({
+        where: { openingId: { in: openingIds }, status: "REJECTED", isDeleted: false },
+      }),
+      prisma.hiringProfile.count({
+        where: { openingId: { in: openingIds }, status: "SHORTLISTED", isDeleted: false },
+      }),
+    ]);
+
+    res.status(200).json({
+      stats: {
+        myOpenings: openings.length,
+        pendingCandidates: pending,
+        recommendedCandidates: recommended,
+        rejectedCandidates: rejected,
+        shortlistedCandidates: shortlisted,
+      },
+    });
+  } catch (error: any) {
+    console.error("[Hiring Manager Controller] getHiringManagerDashboardStats failed:", error);
+    res.status(500).json({ error: "Internal Server Error", message: error.message });
+  }
+}
+
