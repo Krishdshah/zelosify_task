@@ -129,14 +129,15 @@ export const verifyTOTP = createAsyncThunk(
 
 export const signOut = createAsyncThunk(
   "auth/signOut",
-  async (_, { dispatch, rejectWithValue }) => {
+  async (_, { dispatch }) => {
     try {
       await axiosInstance.post("/auth/logout");
-      dispatch(logout());
-      return "/user"; // Return the navigation path
     } catch (error) {
-      return rejectWithValue(error.message);
+      console.error("Server-side logout failed (e.g. expired token), proceeding with local logout:", error);
+    } finally {
+      dispatch(logout());
     }
+    return "/user"; // Return the navigation path
   }
 );
 
