@@ -58,3 +58,45 @@ export const listOfObjects = async (
     res.status(500).json(errorResponse);
   }
 };
+
+/**
+ * Generates a signed GET URL for S3 objects to preview resumes
+ */
+export const previewS3Object = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ status: "error", error: "Unauthorized" });
+      return;
+    }
+    const { s3Key } = req.body;
+    if (!s3Key) {
+      res.status(400).json({ status: "error", error: "s3Key is required" });
+      return;
+    }
+
+    // Verify tenant-level secure boundaries (tenantId matching)
+    // S3 keys are prefixed with <tenantId>/...
+    const tenantId = req.user.tenant?.tenantId;
+    if (!tenantId) {
+      res.status(400).json({ status: "error", error: "User tenant ID not found" });
+      return;
+    }
+
+    // Ensure the user belongs to the tenant prefixing the S3 Key
+    const keyPrefix = s3Key.split("/")[0];
+    if (keyPrefix !== tenantId) {
+      res.status(403).json({ status: "error", error: "Access Denied: Tenant boundary violation" });
+      return;
+    }
+
+    const url = await storageService.getObjectURL(s3Key);
+    res.status(200).json({ url });
+  } catch (error: any) {
+    console.error("[Preview] Error generating GET URL:", error);
+    res.status(500).json({ status: "error", error: error.message });
+  }
+};
+

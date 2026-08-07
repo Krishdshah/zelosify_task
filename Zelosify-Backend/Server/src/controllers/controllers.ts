@@ -12,7 +12,7 @@ export { logout } from "./auth/logout(unified)/logout.js";
 export { getUserDetails } from "./auth/user/getUserDetails.js";
 
 // ===== STORAGE =====
-export { listOfObjects } from "./storage/storageController.js";
+export { listOfObjects, previewS3Object } from "./storage/storageController.js";
 
 // ===== FORM =====
 export { createDigitalInitiative } from "./form/initiativeRequestController.js";
