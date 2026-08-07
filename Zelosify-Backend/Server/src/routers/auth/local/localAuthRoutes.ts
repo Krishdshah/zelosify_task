@@ -70,4 +70,31 @@ router.post("/verify-totp", wrapHandler(verifyTOTP));
  */
 router.post("/logout", authenticateUser, wrapProtectedHandler(logout));
 
+/**
+ * POST /force-logout - Force logout when token is expired
+ * Clears httpOnly cookies WITHOUT requiring valid authentication.
+ * This is the escape hatch for the expired-token deadlock.
+ */
+router.post("/force-logout", (req: Request, res: Response) => {
+  res.clearCookie("access_token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+  });
+  res.clearCookie("refresh_token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+  });
+  res.clearCookie("role", {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+  });
+  res.status(200).json({ message: "Force logout successful, cookies cleared" });
+});
+
 export default router;
