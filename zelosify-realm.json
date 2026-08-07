@@ -1,0 +1,69 @@
+{
+  "id": "Zelosify",
+  "realm": "Zelosify",
+  "displayName": "Zelosify",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "roles": {
+    "realm": [
+      {
+        "name": "ADMIN",
+        "description": "Administrator Role"
+      },
+      {
+        "name": "BUSINESS_APPROVER",
+        "description": "Business Approver Role"
+      },
+      {
+        "name": "BUSINESS_USER",
+        "description": "Business User Role"
+      },
+      {
+        "name": "FINANCE_MANAGER",
+        "description": "Finance Manager Role"
+      },
+      {
+        "name": "HIRING_MANAGER",
+        "description": "Hiring Manager Role"
+      },
+      {
+        "name": "IT_VENDOR",
+        "description": "IT Vendor Role"
+      },
+      {
+        "name": "PROCUREMENT_MANAGER",
+        "description": "Procurement Manager Role"
+      },
+      {
+        "name": "RESOURCE_MANAGER",
+        "description": "Resource Manager Role"
+      },
+      {
+        "name": "VENDOR_MANAGER",
+        "description": "Vendor Manager Role"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "dynamic-client",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "my-dynamic-client-secret-12345",
+      "redirectUris": [
+        "http://localhost"
+      ],
+      "webOrigins": [],
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "publicClient": false,
+      "frontchannelLogout": false,
+      "protocol": "openid-connect"
+    }
+  ]
+}

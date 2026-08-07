@@ -43,6 +43,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@types/estree": "^1.0.9",
     "eslint": "^9",
     "eslint-config-next": "15.1.7",
     "postcss": "^8",
