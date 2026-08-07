@@ -20,7 +20,7 @@ export default function Register() {
     phoneNumber: "",
     companyName: "",
     department: "",
-    role: "USER",
+    role: "IT_VENDOR",
   });
 
   const [error, setError] = useState("");
@@ -62,6 +62,7 @@ export default function Register() {
           lastName: formData.lastName,
           phoneNumber: formData.phoneNumber,
           companyName: formData.companyName,
+          tenantId: formData.companyName, // Sent to backend as tenantId
           department: formData.department,
           role: formData.role,
         };
@@ -89,7 +90,7 @@ export default function Register() {
               "Username or email already in use. Please choose another."
             );
           } else {
-            setError(data?.message || "Registration failed. Please try again.");
+            setError(data?.message || data?.error || "Registration failed. Please try again.");
           }
         } else {
           setError(
@@ -268,11 +269,12 @@ export default function Register() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-            Company Name
+            Tenant ID
           </label>
           <input
             name="companyName"
             required
+            placeholder="e.g. wayne-corp-id"
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent dark:bg-gray-900 dark:text-white transition-colors duration-200"
           />
@@ -299,10 +301,10 @@ export default function Register() {
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent dark:bg-gray-900 dark:text-white transition-colors duration-200"
           >
-            <option value="USER">User</option>
-            <option value="MANAGER">Manager</option>
-            <option value="SENIOR_MANAGER">Senior Manager</option>
-            <option value="ADMIN">Admin</option>
+            <option value="IT_VENDOR">IT Vendor</option>
+            <option value="HIRING_MANAGER">Hiring Manager</option>
+            <option value="VENDOR_MANAGER">Vendor Manager</option>
+            <option value="BUSINESS_USER">Business User</option>
           </select>
         </div>
 
