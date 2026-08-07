@@ -10,6 +10,7 @@ export { logout } from "./auth/logout(unified)/logout.js";
 
 // ===== User details retrieval =====
 export { getUserDetails } from "./auth/user/getUserDetails.js";
+export { updateUserDetails } from "./auth/user/updateUserDetails.js";
 
 // ===== STORAGE =====
 export { listOfObjects, previewS3Object } from "./storage/storageController.js";
