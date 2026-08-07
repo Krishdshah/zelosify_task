@@ -25,22 +25,33 @@ axiosInstance.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error) => {
-    // On 401 Unauthorized (expired/invalid token), clear session and redirect to login
+  async (error) => {
+    // On 401 Unauthorized (expired/invalid token), force-clear httpOnly cookies via backend and redirect
     if (error.response?.status === 401 && typeof window !== "undefined" && !isRedirectingToLogin) {
       isRedirectingToLogin = true;
 
-      // Clear all auth cookies
-      document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie = "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      try {
+        // Call the backend force-logout endpoint to clear httpOnly cookies
+        // Use raw axios (not axiosInstance) to avoid triggering this interceptor recursively
+        await axios.post(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/force-logout`,
+          {},
+          { withCredentials: true }
+        );
+      } catch (forceLogoutError) {
+        // If even force-logout fails, still proceed with redirect
+        console.error("Force logout request failed:", forceLogoutError);
+      }
+
+      // Clear any non-httpOnly cookies and localStorage
       document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       localStorage.removeItem("zelosify_user");
 
-      // Hard redirect to login so middleware picks up the cleared cookies
+      // Hard redirect to login
       window.location.href = "/login";
 
       // Reset after redirect initiated (small delay)
-      setTimeout(() => { isRedirectingToLogin = false; }, 3000);
+      setTimeout(() => { isRedirectingToLogin = false; }, 5000);
     }
 
     if (error.response) {

@@ -133,11 +133,22 @@ export const signOut = createAsyncThunk(
     try {
       await axiosInstance.post("/auth/logout");
     } catch (error) {
-      console.error("Server-side logout failed (e.g. expired token), proceeding with local logout:", error);
+      console.error("Server-side logout failed (e.g. expired token), trying force-logout:", error);
+      try {
+        // Use raw axios to avoid triggering the 401 interceptor loop
+        const { default: axios } = await import("axios");
+        await axios.post(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/force-logout`,
+          {},
+          { withCredentials: true }
+        );
+      } catch (forceLogoutError) {
+        console.error("Force logout also failed:", forceLogoutError);
+      }
     } finally {
       dispatch(logout());
     }
-    return "/user"; // Return the navigation path
+    return "/login"; // Return the navigation path
   }
 );
 
