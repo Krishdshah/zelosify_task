@@ -245,7 +245,6 @@ export async function submitVendorCandidateProfile(req: AuthenticatedRequest, re
     // Trigger AI Agent scoring asynchronously (Non-blocking background job)
     recommenderService.triggerRecommendation(newProfile.id);
 
-    // Return 201 created status immediately to meet performance SLAs
     res.status(201).json({
       message: "Candidate profile registered successfully. AI Agent recommendation triggered in the background.",
       profile: {
@@ -266,3 +265,57 @@ export async function submitVendorCandidateProfile(req: AuthenticatedRequest, re
     res.status(500).json({ error: "Internal Server Error", message: error.message });
   }
 }
+
+/**
+ * DELETE /api/v1/vendor/profiles/:id
+ * Soft deletes a candidate profile uploaded by the vendor.
+ */
+export async function deleteVendorProfile(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    if (!req.user || req.user.role !== "IT_VENDOR") {
+      res.status(403).json({ error: "Access Denied: Requires IT_VENDOR role" });
+      return;
+    }
+
+    const { id } = req.params;
+    const profileId = parseInt(id);
+
+    if (isNaN(profileId)) {
+      res.status(400).json({ error: "Invalid profile ID" });
+      return;
+    }
+
+    const profile = await prisma.hiringProfile.findUnique({
+      where: { id: profileId },
+    });
+
+    if (!profile) {
+      res.status(404).json({ error: "Profile not found" });
+      return;
+    }
+
+    // Verify vendor owns this submission
+    if (profile.uploadedBy !== req.user.email) {
+      res.status(403).json({ error: "Access Denied: You do not own this candidate profile" });
+      return;
+    }
+
+    // Soft delete profile in a database transaction
+    const updated = await prisma.hiringProfile.update({
+      where: { id: profileId },
+      data: { isDeleted: true },
+    });
+
+    res.status(200).json({
+      message: "Profile deleted successfully (soft-deleted)",
+      profile: {
+        id: updated.id,
+        isDeleted: updated.isDeleted,
+      },
+    });
+  } catch (error: any) {
+    console.error("[Vendor Controller] deleteVendorProfile failed:", error);
+    res.status(500).json({ error: "Internal Server Error", message: error.message });
+  }
+}
+
