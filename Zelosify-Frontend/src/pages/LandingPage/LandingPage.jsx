@@ -1,5 +1,6 @@
 import Link from "next/link";
 import LandingNavbar from "@/components/LandingPage/navbar/LandingNavbar";
+import { Button } from "@/components/UI/shadcn/button";
 import {
   Briefcase,
   Shield,
@@ -15,7 +16,7 @@ import {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 overflow-x-hidden">
+    <div className="min-h-screen bg-white text-slate-900 dark:text-slate-50 overflow-x-hidden">
       {/* Navigation */}
       <LandingNavbar />
 
