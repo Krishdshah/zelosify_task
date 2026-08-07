@@ -16,7 +16,7 @@ import {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white text-slate-900 dark:text-slate-50 overflow-x-hidden">
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       {/* Navigation */}
       <LandingNavbar />
 
