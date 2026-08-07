@@ -26,6 +26,7 @@ export default function VendorOpeningsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [stats, setStats] = useState({ totalOpenings: 0, urgentNeeds: 0, avgTimeToFill: "14d" });
 
   const fetchOpenings = async (pageNum) => {
     try {
@@ -35,6 +36,9 @@ export default function VendorOpeningsPage() {
       setPage(res.data.pagination?.page || 1);
       setTotalPages(res.data.pagination?.totalPages || 1);
       setTotalCount(res.data.pagination?.total || 0);
+      if (res.data.stats) {
+        setStats(res.data.stats);
+      }
     } catch (error) {
       console.error("Failed to fetch openings:", error);
       toast.error("Failed to load job openings. Please try again.");
@@ -55,41 +59,28 @@ export default function VendorOpeningsPage() {
     });
   };
 
-  // Helper for mock locations to fit the mock image design nicely
-  const getMockLocation = (location, index) => {
-    if (location) return location;
-    const locations = ["Remote (US)", "Gotham City, NY", "Hybrid (Chicago)", "Remote (Global)"];
-    return locations[index % locations.length];
-  };
-
-  // Helper for mock contract type to fit the mock image design nicely
-  const getMockContractType = (type, index) => {
-    if (type) return type;
-    const types = ["12 Months, C2C", "6 Months, W2", "12 Months, C2C", "6 Months, 1099"];
-    return types[index % types.length];
-  };
-
-  // Helper for mock status to fit the mock image design nicely
-  const getMockStatus = (title, index) => {
-    if (index === 2 || title.toLowerCase().includes("data") || title.toLowerCase().includes("ai")) {
-      return { label: "Urgent", color: "bg-amber-50 text-amber-600 border border-amber-200" };
+  // Helper for manager initials and color dynamically
+  const getManagerInitials = (name) => {
+    if (!name || name === "Unknown Manager") {
+      return { initials: "UM", color: "bg-slate-200 text-slate-800" };
     }
-    return { label: "Open", color: "bg-emerald-50 text-emerald-600 border border-emerald-200" };
-  };
+    const initials = name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
 
-  // Helper for mock managers to fit the mock image design nicely
-  const getMockManager = (name, index) => {
-    const managers = [
-      { name: "Jim Gordon", initials: "JG", color: "bg-slate-200 text-slate-800" },
-      { name: "Lucius Fox", initials: "LF", color: "bg-slate-300 text-slate-900" },
-      { name: "Bruce Wayne", initials: "BW", color: "bg-slate-900 text-white font-bold" },
-    ];
-    // If the manager name from DB is not empty and not "Unknown Manager", use it. Otherwise use rotating mock names.
-    if (name && name !== "Unknown Manager") {
-      const initials = name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
-      return { name, initials, color: "bg-slate-200 text-slate-800" };
+    // Dynamic background colors based on manager names
+    let color = "bg-slate-200 text-slate-800";
+    if (name.includes("Gordon")) {
+      color = "bg-slate-200 text-slate-800";
+    } else if (name.includes("Fox")) {
+      color = "bg-slate-350 text-slate-900";
+    } else if (name.includes("Wayne")) {
+      color = "bg-slate-900 text-white font-bold";
     }
-    return managers[index % managers.length];
+    return { initials, color };
   };
 
   return (
@@ -130,7 +121,7 @@ export default function VendorOpeningsPage() {
             <Briefcase className="h-4 w-4 text-blue-600 stroke-[2px]" />
           </div>
           <div className="text-[32px] font-bold text-gray-900 leading-none">
-            {totalCount || 24}
+            {stats.totalOpenings}
           </div>
         </div>
 
@@ -141,7 +132,7 @@ export default function VendorOpeningsPage() {
             <AlertCircle className="h-4 w-4 text-red-600 stroke-[2px]" />
           </div>
           <div className="text-[32px] font-bold text-gray-900 leading-none">
-            {Math.max(5, Math.ceil(totalCount / 3)) || 5}
+            {stats.urgentNeeds}
           </div>
         </div>
 
@@ -152,7 +143,7 @@ export default function VendorOpeningsPage() {
             <Timer className="h-4 w-4 text-blue-600 stroke-[2px]" />
           </div>
           <div className="text-[32px] font-bold text-gray-900 leading-none">
-            14d
+            {stats.avgTimeToFill}
           </div>
         </div>
       </div>
@@ -162,7 +153,6 @@ export default function VendorOpeningsPage() {
         {loading ? (
           <div className="p-6 space-y-4">
             <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-12 w-full" />
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-12 w-full" />
           </div>
@@ -189,8 +179,20 @@ export default function VendorOpeningsPage() {
             </TableHeader>
             <TableBody>
               {openings.map((opening, index) => {
-                const statusInfo = getMockStatus(opening.title, index);
-                const managerInfo = getMockManager(opening.hiringManagerName, index);
+                const isUrgent = opening.status === "OPEN" && (
+                  opening.experienceMin >= 5 ||
+                  opening.title.toLowerCase().includes("senior") ||
+                  opening.title.toLowerCase().includes("lead") ||
+                  opening.title.toLowerCase().includes("architect")
+                );
+                const statusLabel = isUrgent ? "Urgent" : (opening.status === "OPEN" ? "Open" : opening.status);
+                const statusColor = isUrgent
+                  ? "bg-amber-50 text-amber-600 border border-amber-200"
+                  : (opening.status === "OPEN"
+                      ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                      : "bg-gray-50 text-gray-600 border border-gray-200");
+
+                const managerInfo = getManagerInitials(opening.hiringManagerName);
 
                 return (
                   <TableRow key={opening.id} className="hover:bg-gray-50/50 border-b border-gray-150 transition-colors">
@@ -205,18 +207,18 @@ export default function VendorOpeningsPage() {
                     </TableCell>
                     {/* Status badge */}
                     <TableCell className="py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${statusInfo.color}`}>
-                        <span className={`h-1.5 w-1.5 rounded-full ${statusInfo.label === "Open" ? "bg-emerald-500" : "bg-amber-500"}`} />
-                        {statusInfo.label}
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${statusColor}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${statusLabel === "Open" ? "bg-emerald-500" : (statusLabel === "Urgent" ? "bg-amber-500" : "bg-gray-500")}`} />
+                        {statusLabel}
                       </span>
                     </TableCell>
                     {/* Location */}
                     <TableCell className="text-gray-600 text-xs py-4 font-normal">
-                      {getMockLocation(opening.location, index)}
+                      {opening.location || "Remote"}
                     </TableCell>
                     {/* Contract Type */}
                     <TableCell className="font-mono text-gray-600 text-xs py-4 font-normal">
-                      {getMockContractType(opening.contractType, index)}
+                      {opening.contractType || "Contract"}
                     </TableCell>
                     {/* Posted Date */}
                     <TableCell className="text-gray-500 text-xs py-4 font-normal">
@@ -229,7 +231,7 @@ export default function VendorOpeningsPage() {
                         <div className={`h-6 w-6 rounded-full flex items-center justify-center text-[10px] ${managerInfo.color}`}>
                           {managerInfo.initials}
                         </div>
-                        <span className="text-xs text-gray-700 font-semibold">{managerInfo.name}</span>
+                        <span className="text-xs text-gray-700 font-semibold">{opening.hiringManagerName || "Unknown Manager"}</span>
                       </div>
                     </TableCell>
                     {/* Actions */}

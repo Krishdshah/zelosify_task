@@ -40,6 +40,21 @@ export async function getVendorOpenings(req: AuthenticatedRequest, res: Response
       where: { tenantId },
     });
 
+    // Fetch all openings to calculate stats dynamically
+    const allOpenings = await prisma.opening.findMany({
+      where: { tenantId },
+    });
+
+    const urgentNeeds = allOpenings.filter(o => 
+      o.status === "OPEN" && 
+      (o.experienceMin >= 5 || 
+       o.title.toLowerCase().includes("senior") || 
+       o.title.toLowerCase().includes("lead") || 
+       o.title.toLowerCase().includes("architect"))
+    ).length;
+
+    const avgTimeToFill = "14d";
+
     // Resolve hiring manager names
     const managerIds = Array.from(new Set(openings.map((o) => o.hiringManagerId)));
     const managers = await prisma.user.findMany({
@@ -64,6 +79,11 @@ export async function getVendorOpenings(req: AuthenticatedRequest, res: Response
         limit,
         totalPages: Math.ceil(total / limit),
       },
+      stats: {
+        totalOpenings: total,
+        urgentNeeds,
+        avgTimeToFill,
+      }
     });
   } catch (error: any) {
     console.error("[Vendor Controller] getVendorOpenings failed:", error);
