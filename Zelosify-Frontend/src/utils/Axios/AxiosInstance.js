@@ -27,7 +27,7 @@ axiosInstance.interceptors.response.use(
   },
   (error) => {
     // On 401 Unauthorized (expired/invalid token), clear session and redirect to login
-    if (error.response?.status === 401 && !isRedirectingToLogin) {
+    if (error.response?.status === 401 && typeof window !== "undefined" && !isRedirectingToLogin) {
       isRedirectingToLogin = true;
 
       // Clear all auth cookies

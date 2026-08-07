@@ -19,12 +19,16 @@ router.get("/openings", getHiringManagerOpenings as any);
 
 // GET /api/v1/hiring-manager/openings/:id/profiles
 router.get("/openings/:id/profiles", getHiringManagerOpeningProfiles as any);
+router.get("/openings/:id", getHiringManagerOpeningProfiles as any);
+router.get("/openings/:id/candidates", getHiringManagerOpeningProfiles as any);
 
 // POST /api/v1/hiring-manager/profiles/:id/shortlist
 router.post("/profiles/:id/shortlist", shortlistProfile as any);
+router.post("/shortlist/:id", shortlistProfile as any);
 
 // POST /api/v1/hiring-manager/profiles/:id/reject
 router.post("/profiles/:id/reject", rejectProfile as any);
+router.post("/reject/:id", rejectProfile as any);
 
 export default router;
 

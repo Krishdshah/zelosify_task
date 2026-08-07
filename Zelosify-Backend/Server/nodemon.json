@@ -1,11 +1,12 @@
 {
-  "watch": ["src"],
+  "watch": [
+    "src"
+  ],
   "ext": ".ts",
   "ignore": [
     "src/**/*.spec.ts",
     "src/**/*.test.ts",
     "*.test.ts",
-    "src/scripts/**/*",
     "node_modules",
     "dist",
     "coverage",

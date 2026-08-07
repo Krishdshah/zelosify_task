@@ -22,8 +22,10 @@ router.get("/:id", getVendorOpeningDetail as any);
 
 // POST /api/v1/vendor/openings/:id/profiles/presign
 router.post("/:id/profiles/presign", getVendorProfileUploadPresign as any);
+router.post("/:id/presign", getVendorProfileUploadPresign as any);
 
 // POST /api/v1/vendor/openings/:id/profiles/upload
 router.post("/:id/profiles/upload", submitVendorCandidateProfile as any);
+router.post("/:id/upload", submitVendorCandidateProfile as any);
 
 export default router;
