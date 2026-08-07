@@ -7,6 +7,9 @@ import {
   Scale3DIcon,
   Frown,
   Briefcase,
+  LayoutDashboard,
+  Users,
+  UserCheck,
 } from "lucide-react";
 import { MdDataUsage } from "react-icons/md";
 
@@ -43,14 +46,15 @@ const getOverviewItemsByRole = (role) => {
     // For IT_VENDOR
     case "IT_VENDOR":
       return [
+        { title: "Dashboard", href: "/vendor/openings", icon: LayoutDashboard },
         { title: "Openings", href: "/vendor/openings", icon: Briefcase },
-        { title: "Payments", href: "/vendor/payments", icon: CreditCard },
       ];
 
     // For HIRING_MANAGER
     case "HIRING_MANAGER":
       return [
-        { title: "Openings", href: "/hiring-manager/openings", icon: Briefcase },
+        { title: "Dashboard", href: "/hiring-manager/openings", icon: LayoutDashboard },
+        { title: "My Openings", href: "/hiring-manager/openings", icon: UserCheck },
       ];
 
     default:

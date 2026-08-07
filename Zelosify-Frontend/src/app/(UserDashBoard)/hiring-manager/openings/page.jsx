@@ -37,18 +37,31 @@ export default function HiringManagerOpeningsPage() {
     });
   };
 
+  const getStatusBadge = (status) => {
+    const styles = {
+      OPEN: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+      CLOSED: "bg-gray-100 text-gray-600 border border-gray-200",
+      ON_HOLD: "bg-amber-50 text-amber-700 border border-amber-200",
+    };
+    return (
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${styles[status] || styles.OPEN}`}>
+        {status || "OPEN"}
+      </span>
+    );
+  };
+
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
+        <h1 className="text-[28px] font-bold text-gray-900 tracking-tight">
           My Openings
         </h1>
-        <p className="text-muted-foreground">
-          View job openings you own, check AI-assisted resume screening matching metrics, and shortlist high-quality talent.
+        <p className="text-sm text-gray-500 font-normal">
+          View job openings you manage, check submitted candidate profiles, and take action via AI-assisted recommendations.
         </p>
       </div>
 
-      <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+      <div className="rounded-[8px] border border-gray-150 bg-white shadow-sm overflow-hidden">
         {loading ? (
           <div className="p-6 space-y-4">
             <Skeleton className="h-8 w-full" />
@@ -61,45 +74,59 @@ export default function HiringManagerOpeningsPage() {
             <Briefcase className="h-12 w-12 mx-auto text-muted-foreground/60" />
             <h3 className="text-lg font-semibold">No openings found</h3>
             <p className="text-sm text-muted-foreground">
-              You do not have any active openings registered under your account.
+              You do not have any openings registered under your account yet.
             </p>
           </div>
         ) : (
           <Table>
-            <TableHeader className="bg-muted/40">
-              <TableRow>
-                <TableHead className="font-semibold text-gray-800 dark:text-gray-200">Title</TableHead>
-                <TableHead className="font-semibold text-gray-800 dark:text-gray-200">Location</TableHead>
-                <TableHead className="font-semibold text-gray-800 dark:text-gray-200">Contract Type</TableHead>
-                <TableHead className="font-semibold text-gray-800 dark:text-gray-200">Posted Date</TableHead>
-                <TableHead className="text-right font-semibold text-gray-800 dark:text-gray-200">Action</TableHead>
+            <TableHeader className="bg-[#fcfdfd] border-b border-gray-150">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="font-semibold text-gray-400 text-xs py-3.5 px-6">Role</TableHead>
+                <TableHead className="font-semibold text-gray-400 text-xs py-3.5">Location</TableHead>
+                <TableHead className="font-semibold text-gray-400 text-xs py-3.5">Contract</TableHead>
+                <TableHead className="font-semibold text-gray-400 text-xs py-3.5">Profiles</TableHead>
+                <TableHead className="font-semibold text-gray-400 text-xs py-3.5">Status</TableHead>
+                <TableHead className="font-semibold text-gray-400 text-xs py-3.5">Posted Date</TableHead>
+                <TableHead className="font-semibold text-gray-400 text-xs py-3.5 text-right pr-6">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {openings.map((opening) => (
-                <TableRow key={opening.id} className="hover:bg-muted/30 transition-colors">
-                  <TableCell className="font-semibold max-w-[280px] truncate">{opening.title}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1.5 text-sm">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                <TableRow key={opening.id} className="hover:bg-gray-50/50 border-b border-gray-150 transition-colors">
+                  <TableCell className="font-semibold text-sm max-w-[260px] truncate py-4 px-6">
+                    {opening.title}
+                  </TableCell>
+                  <TableCell className="py-4">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                      <MapPin className="h-3.5 w-3.5 text-gray-400" />
                       <span>{opening.location || "Remote"}</span>
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">
+                  <TableCell className="py-4">
+                    <span className="font-mono text-xs text-gray-600">
                       {opening.contractType || "Contract"}
                     </span>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
+                  <TableCell className="py-4">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                      <Users className="h-3.5 w-3.5 text-gray-400" />
+                      <span className="font-semibold">{opening.profileCount ?? 0}</span>
+                      <span className="text-gray-400">submitted</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-4">
+                    {getStatusBadge(opening.status)}
+                  </TableCell>
+                  <TableCell className="py-4">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                      <Calendar className="h-3.5 w-3.5 text-gray-400" />
                       <span>{formatDate(opening.postedDate)}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right py-4 pr-6">
                     <Link href={`/hiring-manager/openings/${opening.id}`} passHref>
-                      <Button size="sm" className="gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white">
-                        <Eye className="h-4 w-4" />
+                      <Button size="sm" className="h-7 px-3 text-xs gap-1 bg-indigo-600 hover:bg-indigo-700 text-white">
+                        <Eye className="h-3.5 w-3.5" />
                         View Candidates
                       </Button>
                     </Link>

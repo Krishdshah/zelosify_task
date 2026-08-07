@@ -15,13 +15,25 @@ export async function getHiringManagerOpenings(req: AuthenticatedRequest, res: R
 
     const hiringManagerId = req.user.id;
 
-    // Fetch only openings owned by this manager
+    // Fetch only openings owned by this manager, including profile counts
     const openings = await prisma.opening.findMany({
       where: { hiringManagerId },
       orderBy: { postedDate: "desc" },
+      include: {
+        _count: {
+          select: { hiringProfiles: true },
+        },
+      },
     });
 
-    res.status(200).json({ openings });
+    // Flatten _count into the response
+    const mappedOpenings = openings.map((o) => ({
+      ...o,
+      profileCount: o._count.hiringProfiles,
+      _count: undefined,
+    }));
+
+    res.status(200).json({ openings: mappedOpenings });
   } catch (error: any) {
     console.error("[Hiring Manager Controller] getHiringManagerOpenings failed:", error);
     res.status(500).json({ error: "Internal Server Error", message: error.message });
