@@ -4,7 +4,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 const API_KEY = process.env.GEMINI_API_KEY;
-const MODEL_NAME = "gemini-2.5-flash";
+const MODEL_NAME = "gemini-2.5-pro";
 
 export interface Part {
   text?: string;
